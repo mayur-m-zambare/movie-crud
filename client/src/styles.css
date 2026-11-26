@@ -249,11 +249,7 @@ button {
   display: none;
 }
 .mobile-menu-backdrop {
-  display: block;
-  position: fixed;
-  inset: 62px 0 0;
-  z-index: 11;
-  background: rgba(5, 4, 10, 0.68);
+  border: 0;
 }
 .welcome-row {
   display: flex;
@@ -713,6 +709,10 @@ button {
 }
 .modal {
   width: min(100%, 440px);
+  max-width: 440px;
+  max-height: calc(100dvh - 36px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   background: #171326;
   border: 1px solid #a16ce34a;
   border-radius: 17px;
@@ -869,6 +869,17 @@ button {
   }
 }
 @media (max-width: 800px) {
+  .modal-backdrop {
+    inset: 62px 0 0;
+    align-items: start;
+    justify-items: center;
+    padding: 12px;
+  }
+  .modal {
+    width: 100%;
+    max-width: 440px;
+    max-height: calc(100dvh - 86px);
+  }
   .sidebar {
     top: 62px;
     bottom: 0;
@@ -1079,31 +1090,18 @@ button {
     height: 32px;
   }
   .modal-backdrop {
-    align-items: start;
-    justify-items: center;
-    padding: 72px 12px 12px;
+    inset: 58px 0 0;
+    padding: 8px;
   }
   .modal {
-    max-height: calc(100vh - 84px);
-  }
-  .modal-head {
-    margin-bottom: 12px;
-  }
-  .modal h2 {
-    font-size: 20px;
+    max-height: calc(100dvh - 74px);
+    padding: 16px;
   }
   .modal-actions {
-    position: sticky;
-    bottom: -18px;
-    margin: 20px -18px -18px;
-    padding: 12px 18px 18px;
-    background: #171326;
-  }
-  .modal-actions .btn {
-    flex: 1;
-  }
-  .delete-confirm {
-    min-width: 0;
+    position: static;
+    margin: 18px 0 0;
+    padding: 0;
+    background: transparent;
   }
 }
 @media (max-width: 380px) {
@@ -1137,10 +1135,11 @@ button {
 @media (max-height: 650px) {
   .modal-backdrop {
     align-items: start;
-    padding: 68px 10px 10px;
+    justify-items: center;
+    padding: 8px;
   }
   .modal {
-    max-height: calc(100vh - 78px);
+    max-height: calc(100dvh - 78px);
     overflow-y: auto;
   }
 }
