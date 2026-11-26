@@ -1,0 +1,7 @@
+# The deployable site is the Vite + React frontend in client/.
+# The Express/MongoDB API in server/ is a separate long-running server and is not built here.
+[build]
+  base = "client"
+  # Install dependencies explicitly so the build works even when no install step runs first.
+  command = "npm ci && npm run build"
+  publish = "dist"
