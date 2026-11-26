@@ -8,10 +8,16 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:5173",
   "https://movie-crud-azure.vercel.app",
+  "https://movie-crud-front-end.onrender.com",
 ];
 
 app.use(cors({
-  origin: allowedOrigins,
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error("Not allowed by CORS: " + origin));
+  },
   credentials: true,
 }));
 app.use(express.json({ limit: "1mb" }));
