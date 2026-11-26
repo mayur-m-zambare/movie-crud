@@ -1,4 +1,4 @@
-# movie-crud AI — Day 1 Starter
+# movie-crud AI
 
 A Day 1 MERN implementation: MongoDB persistence, Express REST API, React dashboard, movie CRUD, search, genre filter, rating filter, and Top Pick highlighting.
 
@@ -61,5 +61,4 @@ Example movie body:
 - MongoDB generates the unique `_id` automatically.
 - Title and genre are required. Rating must be a number from 1 to 5.
 - Movies rated 5 are marked as **TOP PICK** in the interface.
-- The AI features are intentionally not included in this Day 1 package. They are planned for Day 2.
 - If the API cannot connect, check that MongoDB is running and `MONGODB_URI` is correct.
