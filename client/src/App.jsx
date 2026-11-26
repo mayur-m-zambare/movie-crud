@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import toast from "react-hot-toast";
 import {
   Film,
   LayoutDashboard,
@@ -29,9 +30,9 @@ export default function App() {
   const [sort, setSort] = useState("newest");
   const [modalMovie, setModalMovie] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [toast, setToast] = useState("");
   const [error, setError] = useState("");
   const [activeView, setActiveView] = useState("dashboard");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const loadMovies = useCallback(async () => {
     setLoading(true);
@@ -55,11 +56,6 @@ export default function App() {
   useEffect(() => {
     loadMovies();
   }, [loadMovies]);
-  useEffect(() => {
-    if (!toast) return;
-    const timer = setTimeout(() => setToast(""), 2800);
-    return () => clearTimeout(timer);
-  }, [toast]);
 
   const stats = useMemo(() => {
     const total = movies.length;
@@ -68,7 +64,7 @@ export default function App() {
       : "0.0";
     const top = movies.filter((m) => m.rating === 5).length;
     const counts = movies.reduce((acc, m) => {
-      acc[m.genre] = (acc[m.genre] || 0) + 1;
+      if (m.favorite) acc[m.genre] = (acc[m.genre] || 0) + 1;
       return acc;
     }, {});
     const favorite =
@@ -78,45 +74,65 @@ export default function App() {
 
   async function saveMovie(payload) {
     setSaving(true);
+    const isEditing = Boolean(modalMovie);
     try {
-      if (modalMovie) await movieApi.update(modalMovie._id, payload);
+      if (isEditing) await movieApi.update(modalMovie._id, payload);
       else await movieApi.create(payload);
       setModalOpen(false);
       setModalMovie(null);
-      setToast(
-        modalMovie
-          ? "Movie updated successfully."
-          : "Movie added to your collection.",
-      );
+      toast.success(isEditing
+        ? "Movie updated successfully."
+        : "Movie added to your collection.");
       await loadMovies();
     } catch (err) {
-      setToast(getErrorMessage(err));
+      toast.error(getErrorMessage(err));
     } finally {
       setSaving(false);
     }
   }
 
   async function deleteMovie(movie) {
-    if (!window.confirm(`Delete "${movie.title}" from your collection?`))
-      return;
-    try {
-      await movieApi.remove(movie._id);
-      setToast("Movie deleted successfully.");
-      await loadMovies();
-    } catch (err) {
-      setToast(getErrorMessage(err));
-    }
+    toast((t) => (
+      <div className="delete-confirm">
+        <p>Delete "{movie.title}" from your collection?</p>
+        <div className="delete-confirm-actions">
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={() => toast.dismiss(t.id)}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="btn btn-danger"
+            onClick={async () => {
+              toast.dismiss(t.id);
+              try {
+                await movieApi.remove(movie._id);
+                toast.success("Movie deleted successfully.");
+                await loadMovies();
+              } catch (err) {
+                toast.error(getErrorMessage(err));
+              }
+            }}
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    ), { duration: 5000 });
   }
 
   async function toggleFavorite(movie) {
     try {
       await movieApi.toggleFavorite(movie._id);
-      setToast(
+      toast.success(
         movie.favorite ? "Removed from My Movies." : "Added to My Movies.",
       );
       await loadMovies();
     } catch (err) {
-      setToast(getErrorMessage(err));
+      toast.error(getErrorMessage(err));
     }
   }
 
@@ -125,6 +141,7 @@ export default function App() {
     setQuery("");
     setGenre("");
     setRating("");
+    setMobileMenuOpen(false);
   }
 
   function showFavorites() {
@@ -132,20 +149,60 @@ export default function App() {
     setQuery("");
     setGenre("");
     setRating("");
+    setMobileMenuOpen(false);
   }
 
   function openAdd() {
     setModalMovie(null);
     setModalOpen(true);
+    setMobileMenuOpen(false);
   }
   function openEdit(movie) {
     setModalMovie(movie);
     setModalOpen(true);
   }
 
+  function toggleMobileMenu() {
+    setMobileMenuOpen((prev) => !prev);
+  }
+
+  function closeMobileMenu() {
+    setMobileMenuOpen(false);
+  }
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") setMobileMenuOpen(false);
+    };
+    const closeOnDesktop = () => {
+      if (window.matchMedia("(min-width: 801px)").matches) {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", closeOnEscape);
+    window.addEventListener("resize", closeOnDesktop);
+
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", closeOnEscape);
+      window.removeEventListener("resize", closeOnDesktop);
+    };
+  }, [mobileMenuOpen]);
+
   return (
     <div className="app-shell">
-      <aside className="sidebar">
+      {mobileMenuOpen && (
+        <button
+          className="mobile-menu-backdrop"
+          aria-label="Close navigation menu"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+      <aside className={`sidebar ${mobileMenuOpen ? "mobile-open" : ""}`}>
         <div className="brand">
           <div className="brand-mark">
             <Film size={23} />
@@ -160,31 +217,32 @@ export default function App() {
         <div className="nav-label">WORKSPACE</div>
         <button
           className={`nav-item ${activeView === "dashboard" ? "active" : ""}`}
-          onClick={showDashboard}
+          onClick={() => {
+            showDashboard();
+            closeMobileMenu();
+          }}
         >
           <LayoutDashboard size={17} />
           Dashboard
         </button>
         <button
           className={`nav-item ${activeView === "favorites" ? "active" : ""}`}
-          onClick={showFavorites}
+          onClick={() => {
+            showFavorites();
+            closeMobileMenu();
+          }}
         >
           <Clapperboard size={17} />
           My Movies
         </button>
-        <button className="nav-item" onClick={openAdd}>
+        <button className="nav-item" onClick={() => {
+          openAdd();
+          closeMobileMenu();
+        }}>
           <Plus size={17} />
           Add Movie
         </button>
         <div className="sidebar-bottom">
-          <div className="ai-card">
-            <div className="ai-orb">
-              <Sparkles size={19} />
-            </div>
-            <strong>AI assistant</strong>
-            <p>Coming in Day 2. Your personal movie companion.</p>
-            <span>IN DEVELOPMENT</span>
-          </div>
           <div className="profile">
             <div className="avatar">M</div>
             <div>
@@ -198,8 +256,18 @@ export default function App() {
 
       <main className="main-content">
         <header className="topbar">
-          <div className="mobile-brand">
-            <Film size={20} /> movie-crud <b>AI</b>
+          <div className="mobile-header-left">
+            <button
+              className="icon-btn mobile-menu-button"
+              onClick={() => setMobileMenuOpen((open) => !open)}
+              aria-label="Open navigation menu"
+              aria-expanded={mobileMenuOpen}
+            >
+              <Menu size={20} />
+            </button>
+            <div className="mobile-brand">
+              <Film size={20} /> movie-crud <b>AI</b>
+            </div>
           </div>
           <div className="breadcrumb">
             Workspace <span>/</span> <b>Dashboard</b>
@@ -213,50 +281,54 @@ export default function App() {
           </div>
         </header>
 
-        <section className="welcome-row">
-          <div>
-            <span className="eyebrow">YOUR COLLECTION, YOUR STORY</span>
-            <h1>
-              Good evening, <em>Movie Lover.</em>
-            </h1>
-            <p>Keep your favorites close. Discover your next obsession.</p>
-          </div>
-          <button className="btn btn-primary add-main" onClick={openAdd}>
-            <Plus size={17} /> Add movie
-          </button>
-        </section>
+        {activeView !== "favorites" && (
+          <>
+            <section className="welcome-row">
+              <div>
+                <span className="eyebrow">YOUR COLLECTION, YOUR STORY</span>
+                <h1>
+                  Good evening, <em>Movie Lover.</em>
+                </h1>
+                <p>Keep your favorites close. Discover your next obsession.</p>
+              </div>
+              <button className="btn btn-primary add-main" onClick={openAdd}>
+                <Plus size={17} /> Add movie
+              </button>
+            </section>
 
-        <section className="stats-grid">
-          <Stat
-            icon={<Clapperboard />}
-            label="TOTAL MOVIES"
-            value={stats.total}
-            note="In your collection"
-            color="purple"
-          />
-          <Stat
-            icon={<Star />}
-            label="AVERAGE RATING"
-            value={stats.average}
-            note="Out of 5.0"
-            color="gold"
-          />
-          <Stat
-            icon={<Trophy />}
-            label="TOP PICKS"
-            value={stats.top}
-            note="Rated five stars"
-            color="pink"
-          />
-          <Stat
-            icon={<Layers3 />}
-            label="FAVORITE GENRE"
-            value={stats.favorite}
-            note="Most collected genre"
-            color="blue"
-            compact
-          />
-        </section>
+            <section className="stats-grid">
+              <Stat
+                icon={<Clapperboard />}
+                label="TOTAL MOVIES"
+                value={stats.total}
+                note="In your collection"
+                color="purple"
+              />
+              <Stat
+                icon={<Star />}
+                label="AVERAGE RATING"
+                value={stats.average}
+                note="Out of 5.0"
+                color="gold"
+              />
+              <Stat
+                icon={<Trophy />}
+                label="TOP PICKS"
+                value={stats.top}
+                note="Rated five stars"
+                color="pink"
+              />
+              <Stat
+                icon={<Layers3 />}
+                label="FAVORITE GENRE"
+                value={stats.favorite}
+                note="Most collected genre"
+                color="blue"
+                compact
+              />
+            </section>
+          </>
+        )}
 
         <section className="section-heading">
           <div>
@@ -402,7 +474,7 @@ export default function App() {
         <footer className="footer">
           <span>© 2026 movie-crud AI</span>
           <span>
-            <i /> DAY 1 BUILD · AI FEATURES ARRIVE TOMORROW
+            <i /> Mayur Zambare
           </span>
         </footer>
       </main>
@@ -413,12 +485,6 @@ export default function App() {
           onSave={saveMovie}
           saving={saving}
         />
-      )}
-      {toast && (
-        <div className="toast">
-          <span>✓</span>
-          {toast}
-        </div>
       )}
     </div>
   );

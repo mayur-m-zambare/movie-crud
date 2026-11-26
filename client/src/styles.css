@@ -48,6 +48,9 @@ button {
   flex-direction: column;
   z-index: 2;
 }
+.sidebar.mobile-open {
+  transform: translateX(0);
+}
 .brand {
   display: flex;
   align-items: center;
@@ -185,6 +188,9 @@ button {
   margin-left: 245px;
   padding: 0 48px;
   max-width: 1700px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 .topbar {
   height: 75px;
@@ -232,6 +238,22 @@ button {
 }
 .mobile-brand {
   display: none;
+}
+.mobile-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.mobile-menu-button,
+.mobile-menu-backdrop {
+  display: none;
+}
+.mobile-menu-backdrop {
+  display: block;
+  position: fixed;
+  inset: 62px 0 0;
+  z-index: 11;
+  background: rgba(5, 4, 10, 0.68);
 }
 .welcome-row {
   display: flex;
@@ -650,11 +672,17 @@ button {
     background-position: -200% 0;
   }
 }
+.movie-grid,
+.loading-grid,
+.empty-state,
+.state-panel {
+  margin-bottom: 42px;
+}
 .footer {
   display: flex;
   justify-content: space-between;
   border-top: 1px solid var(--line);
-  margin-top: 42px;
+  margin-top: auto;
   padding: 17px 0 24px;
   color: #686276;
   font-size: 9px;
@@ -760,30 +788,27 @@ button {
   background: #ffffff0b;
   color: #c6bed2;
 }
-.toast {
-  position: fixed;
-  z-index: 20;
-  bottom: 24px;
-  right: 24px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 13px 17px;
-  border: 1px solid #9360d95c;
-  background: #1c1729;
-  color: #eee8f7;
-  border-radius: 10px;
-  font-size: 12px;
-  box-shadow: 0 12px 35px #0007;
-}
-.toast span {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: #2c9e76;
+.btn-danger {
+  background: #b94b66;
   color: white;
-  display: grid;
-  place-items: center;
+}
+.delete-confirm {
+  min-width: 270px;
+}
+.delete-confirm p {
+  margin: 0 0 14px;
+  color: #eee8f7;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.delete-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.delete-confirm-actions .btn {
+  padding: 8px 12px;
+  font-size: 12px;
 }
 .poster-upload {
   display: flex;
@@ -845,36 +870,57 @@ button {
 }
 @media (max-width: 800px) {
   .sidebar {
-    width: 68px;
-    padding: 20px 10px;
+    top: 62px;
+    bottom: 0;
+    z-index: 12;
+    width: 245px;
+    padding: 28px 18px;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    box-shadow: 18px 0 45px rgba(0, 0, 0, 0.35);
+  }
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+  .mobile-menu-backdrop {
+    display: block;
+    position: fixed;
+    inset: 62px 0 0;
+    z-index: 11;
+    background: rgba(5, 4, 10, 0.68);
+  }
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 8;
+    background: rgba(9, 8, 18, 0.94);
+    backdrop-filter: blur(12px);
   }
   .brand {
-    padding: 0 2px 35px;
+    padding: 0 7px 42px;
   }
   .brand > div:last-child,
-  .nav-label,
-  .nav-item:not(.active) {
-    display: none;
+  .nav-label {
+    display: block;
   }
   .nav-item {
-    justify-content: center;
-    font-size: 0;
-    padding: 13px;
+    justify-content: flex-start;
+    font-size: 13px;
+    padding: 12px 13px;
   }
-  .nav-item svg {
-    width: 19px;
-    height: 19px;
+  .nav-item:not(.active) {
+    display: flex;
   }
   .ai-card,
   .profile > div:not(.avatar),
   .online-dot {
-    display: none;
+    display: block;
   }
   .profile {
-    justify-content: center;
+    justify-content: flex-start;
   }
   .main-content {
-    margin-left: 68px;
+    margin-left: 0;
     padding: 0 20px;
   }
   .movie-grid,
@@ -884,6 +930,15 @@ button {
   .topbar {
     height: 62px;
   }
+  .mobile-menu-button {
+    display: grid;
+  }
+  .mobile-brand {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font: 700 16px "Space Grotesk";
+  }
   .welcome-row {
     padding-top: 28px;
   }
@@ -892,9 +947,6 @@ button {
   }
 }
 @media (max-width: 560px) {
-  .sidebar {
-    display: none;
-  }
   .main-content {
     margin: 0;
     padding: 0 15px;
@@ -902,14 +954,14 @@ button {
   .breadcrumb {
     display: none;
   }
+  .top-actions {
+    gap: 9px;
+  }
   .mobile-brand {
     display: flex;
     align-items: center;
     gap: 7px;
     font: 700 16px "Space Grotesk";
-  }
-  .top-actions {
-    gap: 9px;
   }
   .welcome-row {
     align-items: start;
@@ -985,11 +1037,111 @@ button {
     gap: 12px;
     flex-direction: column;
   }
-  .toast {
-    left: 14px;
-    right: 14px;
-    bottom: 14px;
-    justify-content: center;
+}
+@media (max-width: 420px) {
+  .topbar {
+    height: 58px;
+  }
+  .mobile-header-left {
+    min-width: 0;
+  }
+  .mobile-brand {
+    min-width: 0;
+    font-size: 14px;
+  }
+  .top-actions .avatar.small {
+    display: none;
+  }
+  .icon-btn {
+    width: 38px;
+    height: 38px;
+  }
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .toolbar {
+    grid-template-columns: 1fr;
+  }
+  .search-box {
+    grid-column: auto;
+  }
+  .section-heading {
+    align-items: center;
+  }
+  .section-heading h2 {
+    font-size: 18px;
+  }
+  .movie-actions {
+    gap: 6px;
+  }
+  .movie-actions button {
+    width: 32px;
+    height: 32px;
+  }
+  .modal-backdrop {
+    align-items: start;
+    justify-items: center;
+    padding: 72px 12px 12px;
+  }
+  .modal {
+    max-height: calc(100vh - 84px);
+  }
+  .modal-head {
+    margin-bottom: 12px;
+  }
+  .modal h2 {
+    font-size: 20px;
+  }
+  .modal-actions {
+    position: sticky;
+    bottom: -18px;
+    margin: 20px -18px -18px;
+    padding: 12px 18px 18px;
+    background: #171326;
+  }
+  .modal-actions .btn {
+    flex: 1;
+  }
+  .delete-confirm {
+    min-width: 0;
+  }
+}
+@media (max-width: 380px) {
+  .main-content {
+    padding: 0 12px;
+  }
+  .mobile-brand svg {
+    display: none;
+  }
+  .welcome-row h1 {
+    font-size: 24px;
+  }
+  .stats-grid,
+  .movie-grid,
+  .loading-grid {
+    grid-template-columns: 1fr;
+  }
+  .poster {
+    height: 190px;
+  }
+  .movie-status {
+    font-size: 9px;
+  }
+  .footer {
+    text-align: center;
+  }
+  .footer span {
+    line-height: 1.7;
+  }
+}
+@media (max-height: 650px) {
+  .modal-backdrop {
+    align-items: start;
+    padding: 68px 10px 10px;
+  }
+  .modal {
+    max-height: calc(100vh - 78px);
+    overflow-y: auto;
   }
 }
 .favorite-active {

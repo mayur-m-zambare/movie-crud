@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import { X, Star } from "lucide-react";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const genres = [
   "Action",
@@ -20,7 +23,6 @@ export default function MovieModal({ movie, onClose, onSave, saving }) {
   const [form, setForm] = useState({ title: "", genre: "Action", rating: 5 });
   const [poster, setPoster] = useState(null);
   const [preview, setPreview] = useState("");
-  const [error, setError] = useState("");
 
   useEffect(() => {
     if (movie) {
@@ -32,11 +34,10 @@ export default function MovieModal({ movie, onClose, onSave, saving }) {
   function submit(e) {
     e.preventDefault();
     if (!form.title.trim() || !form.genre.trim())
-      return setError("Title and genre are required.");
+      return toast.error("Title and genre are required.");
     const rating = Number(form.rating);
     if (!Number.isInteger(rating) || rating < 1 || rating > 5)
-      return setError("Rating must be from 1 to 5.");
-    setError("");
+      return toast.error("Rating must be from 1 to 5.");
 
     const formData = new FormData();
     formData.append("title", form.title.trim());
@@ -51,10 +52,9 @@ export default function MovieModal({ movie, onClose, onSave, saving }) {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/"))
-      return setError("Please choose an image file.");
+      return toast.error("Please choose an image file.");
     if (file.size > 5 * 1024 * 1024)
-      return setError("Poster must be 5 MB or smaller.");
-    setError("");
+      return toast.error("Poster must be 5 MB or smaller.");
     setPoster(file);
     setPreview(URL.createObjectURL(file));
   }
@@ -129,7 +129,6 @@ export default function MovieModal({ movie, onClose, onSave, saving }) {
               </button>
             ))}
           </div>
-          {error && <p className="form-error">{error}</p>}
           <div className="modal-actions">
             <button type="button" className="btn btn-ghost" onClick={onClose}>
               Cancel
