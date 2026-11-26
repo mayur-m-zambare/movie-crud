@@ -25,7 +25,7 @@ export default function MovieModal({ movie, onClose, onSave, saving }) {
   useEffect(() => {
     if (movie) {
       setForm({ title: movie.title, genre: movie.genre, rating: movie.rating });
-      setPreview(movie.poster ? `http://localhost:5000${movie.poster}` : "");
+      setPreview(movie.poster ? `${API_URL}${movie.poster}` : "");
     }
   }, [movie]);
 

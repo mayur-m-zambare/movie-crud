@@ -1,4 +1,5 @@
 import { Film, Pencil, Trash2, Star, Heart } from "lucide-react";
+const API_URL = import.meta.env.VITE_API_URL;
 
 const palettes = [
   "poster-violet",
@@ -27,7 +28,7 @@ export default function MovieCard({
         {movie.poster && (
           <img
             className="poster-image"
-            src={`http://localhost:5000${movie.poster}`}
+            src={`${API_URL}${movie.poster}`}
             alt={`${movie.title} poster`}
           />
         )}
