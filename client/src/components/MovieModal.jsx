@@ -2,7 +2,14 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { X, Star } from "lucide-react";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const configuredApiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_URL = configuredApiUrl.replace(/\/api\/?$/, "").replace(/\/$/, "");
+
+function getPosterUrl(poster) {
+  if (!poster) return "";
+  if (/^https?:\/\//i.test(poster)) return poster;
+  return `${API_URL}${poster.startsWith("/") ? poster : `/${poster}`}`;
+}
 
 const genres = [
   "Action",
@@ -27,7 +34,7 @@ export default function MovieModal({ movie, onClose, onSave, saving }) {
   useEffect(() => {
     if (movie) {
       setForm({ title: movie.title, genre: movie.genre, rating: movie.rating });
-      setPreview(movie.poster ? `${API_URL}${movie.poster}` : "");
+      setPreview(movie.poster ? getPosterUrl(movie.poster) : "");
     }
   }, [movie]);
 

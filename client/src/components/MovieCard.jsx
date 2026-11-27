@@ -1,5 +1,12 @@
 import { Film, Pencil, Trash2, Star, Heart } from "lucide-react";
-const API_URL = import.meta.env.VITE_API_URL;
+const configuredApiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_URL = configuredApiUrl.replace(/\/api\/?$/, "").replace(/\/$/, "");
+
+function getPosterUrl(poster) {
+  if (!poster) return "";
+  if (/^https?:\/\//i.test(poster)) return poster;
+  return `${API_URL}${poster.startsWith("/") ? poster : `/${poster}`}`;
+}
 
 const palettes = [
   "poster-violet",
@@ -28,8 +35,12 @@ export default function MovieCard({
         {movie.poster && (
           <img
             className="poster-image"
-            src={`${API_URL}${movie.poster}`}
+            src={getPosterUrl(movie.poster)}
             alt={`${movie.title} poster`}
+            loading="lazy"
+            onError={(event) => {
+              event.currentTarget.style.display = "none";
+            }}
           />
         )}
         <div className="poster-glow" />
